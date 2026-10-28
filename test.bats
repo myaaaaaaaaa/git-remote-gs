@@ -6,13 +6,13 @@ setup() {
 }
 
 @test "prints Hello, world! when no arguments are given" {
-	run ./app.sh
+	run app.sh
 	assert_success
 	assert_output "Hello, world!"
 }
 
 @test "prints Hello, Nix! when Nix is given as argument" {
-	run ./app.sh "Nix"
+	run app.sh "Nix"
 	assert_success
 	assert_output "Hello, Nix!"
 }

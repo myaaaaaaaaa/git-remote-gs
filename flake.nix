@@ -5,19 +5,20 @@
     let
       forPkgs = pkgs:
         let
+          name = "app.sh";
           package = pkgs.writeShellApplication {
-            name = "app";
-            text = builtins.readFile ./app.sh;
+            name = name;
+            text = builtins.readFile ./${name};
           };
           check = pkgs.runCommand "bats-test" {
             nativeBuildInputs = [
+              package
               (pkgs.bats.withLibraries (p: [
                 p.bats-support
                 p.bats-assert
               ]))
             ];
           } ''
-            ln -s ${package}/bin/app ./app.sh
             bats ${./test.bats}
             touch $out
           '';
