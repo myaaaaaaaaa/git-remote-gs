@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
+a="word"
+b=$a
+
 if [ $# -eq 0 ]; then
-	echo "Hello, world!"
+	echo "Hel lo, world!"
 else
 	echo "Hello, $1!"
 fi
