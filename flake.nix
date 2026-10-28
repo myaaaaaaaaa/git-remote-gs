@@ -5,7 +5,7 @@
     let
       forPkgs = pkgs:
         let
-          name = "app.sh";
+          name = "git-remote-gs";
           package = pkgs.writeShellApplication {
             name = name;
             text = builtins.readFile ./${name};
@@ -13,6 +13,8 @@
           check = pkgs.runCommand "bats-test" {
             nativeBuildInputs = [
               package
+              pkgs.git
+              pkgs.jq
               (pkgs.bats.withLibraries (p: [
                 p.bats-support
                 p.bats-assert

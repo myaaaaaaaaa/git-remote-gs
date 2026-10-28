@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# git-remote-gs: Minimalist GCS Git remote using set -ex and jq
+set -ex
+
+REMOTE_URL="$2"
+CACHE_DIR=$(mktemp -d -t git-remote-gs.XXXXXX)
+BUNDLE_FILE="${CACHE_DIR}/repo.bundle"
+BATCH_FILE="${CACHE_DIR}/batch"
+
+trap 'rm -rf "$CACHE_DIR"' EXIT
+
+download_bundle() {
+	# 'if' natively suppresses 'set -e' if the command fails, acting as a clean existence check
+	if gsutil stat "$REMOTE_URL" >/dev/null 2>&1; then
+		gsutil -q cp "$REMOTE_URL" "$BUNDLE_FILE"
+	fi
+}
+
+cmd_capabilities() {
+	printf "fetch\npush\n\n"
+}
+
+cmd_list() {
+	download_bundle
+	[[ -f "$BUNDLE_FILE" ]] && git bundle list-heads "$BUNDLE_FILE"
+	echo ""
+}
+
+cmd_fetch() {
+	download_bundle
+	# jq parses the whole batch file, extracts all target refs (col 3), 
+	# and $() flattens them into arguments for a single bulk fetch operation.
+	refs=$(jq -rR 'split(" ")[2]' "$BATCH_FILE")
+	# shellcheck disable=SC2086
+	git fetch --quiet "$BUNDLE_FILE" $refs
+	echo ""
+}
+
+cmd_push() {
+	local new_bundle="${CACHE_DIR}/new.bundle"
+	
+	git bundle create "$new_bundle" --all
+	gsutil -q cp "$new_bundle" "$REMOTE_URL"
+
+	# jq extracts the dst ref from src:dst (col 2), formats the ACK, and prints to stdout
+	jq -rR 'split(" ")[1] | split(":") | last | "ok \(.)"' "$BATCH_FILE"
+	echo ""
+}
+
+cmd_process_batch() {
+	[[ -s "$BATCH_FILE" ]] || return 0
+
+	# jq slurps (-s) the file, grabs the first line, and extracts the first word to route the command
+	local batch_type
+	batch_type=$(jq -sRr 'split("\n")[0] | split(" ")[0]' "$BATCH_FILE")
+
+	# Dynamically route to cmd_fetch or cmd_push
+	"cmd_${batch_type}"
+
+	rm -f "$BATCH_FILE"
+}
+
+# --- Main Event Router ---
+while read -r line; do
+	if [[ -z "$line" ]]; then
+		cmd_process_batch
+		continue
+	fi
+
+	case "$line" in
+		capabilities) cmd_capabilities ;;
+		list*)        cmd_list ;;
+		fetch\ *|push\ *) echo "$line" >> "$BATCH_FILE" ;;
+	esac
+done
