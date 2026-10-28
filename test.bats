@@ -8,7 +8,7 @@ setup() {
 @test "prints Hello, world! when no arguments are given" {
 	run ./app.sh
 	assert_success
-	assert_output "Hello, world!"
+	assert_output "Hel lo, world!"
 }
 
 @test "prints Hello, Nix! when Nix is given as argument" {
