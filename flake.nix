@@ -13,6 +13,7 @@
           check = pkgs.runCommand "bats-test" {
             nativeBuildInputs = [
               package
+              (pkgs.writeShellScriptBin "gsutil" (builtins.readFile ./mock_gsutil))
               pkgs.git
               pkgs.jq
               (pkgs.bats.withLibraries (p: [

@@ -1,45 +1,6 @@
 #!/usr/bin/env bats
 
 setup() {
-	# Ensure git-remote-gs is in PATH
-	export PATH="${BATS_TEST_DIRNAME}:${PATH}"
-	
-	export BIN_DIR="${BATS_TEST_TMPDIR}/bin"
-	mkdir -p "$BIN_DIR"
-	cat << 'MOCK' > "${BIN_DIR}/gsutil"
-#!/bin/sh
-if [[ "$1" == "-q" ]]; then
-	shift
-fi
-cmd=$1
-shift
-
-case "$cmd" in
-	stat)
-		url=$1
-		path="${url/gs:\/\//$GS_MOCK_DIR/}"
-		if [ -f "$path" ]; then
-			exit 0
-		else
-			exit 1
-		fi
-		;;
-	cp)
-		if [[ "$1" == "-q" ]]; then
-			shift
-		fi
-		src=$1
-		dst=$2
-		src_path="${src/gs:\/\//$GS_MOCK_DIR/}"
-		dst_path="${dst/gs:\/\//$GS_MOCK_DIR/}"
-		mkdir -p "$(dirname "$dst_path")"
-		cp "$src_path" "$dst_path"
-		;;
-esac
-MOCK
-	chmod +x "${BIN_DIR}/gsutil"
-	export PATH="${BIN_DIR}:${PATH}"
-	
 	export GS_MOCK_DIR="${BATS_TEST_TMPDIR}/mock_gs"
 	mkdir -p "${GS_MOCK_DIR}/mybucket"
 	

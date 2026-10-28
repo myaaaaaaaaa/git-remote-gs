@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+if [[ "$1" == "-q" ]]; then
+	shift
+fi
+cmd=$1
+shift
+
+case "$cmd" in
+	stat)
+		url=$1
+		path="${url/gs:\/\//$GS_MOCK_DIR/}"
+		if [ -f "$path" ]; then
+			exit 0
+		else
+			exit 1
+		fi
+		;;
+	cp)
+		if [[ "$1" == "-q" ]]; then
+			shift
+		fi
+		src=$1
+		dst=$2
+		src_path="${src/gs:\/\//$GS_MOCK_DIR/}"
+		dst_path="${dst/gs:\/\//$GS_MOCK_DIR/}"
+		mkdir -p "$(dirname "$dst_path")"
+		cp "$src_path" "$dst_path"
+		;;
+esac
