@@ -10,14 +10,13 @@ BATCH_FILE="${CACHE_DIR}/batch"
 trap 'rm -rf "$CACHE_DIR"' EXIT
 
 download_bundle() {
-	# 'if' natively suppresses 'set -e' if the command fails, acting as a clean existence check
-	if gsutil stat "$REMOTE_URL" >/dev/null 2>&1; then
-		gsutil -q cp "$REMOTE_URL" "$BUNDLE_FILE"
-	fi
+	gsutil -q cp "$REMOTE_URL" "$BUNDLE_FILE" 2>/dev/null || true
 }
 
 cmd_capabilities() {
-	printf "fetch\npush\n\n"
+	echo fetch
+	echo push
+	echo
 }
 
 cmd_list() {
