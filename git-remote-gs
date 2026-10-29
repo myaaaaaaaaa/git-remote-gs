@@ -9,8 +9,12 @@ BATCH_FILE="${CACHE_DIR}/batch"
 
 trap 'rm -rf "$CACHE_DIR"' EXIT
 
+blobcp() {
+	gsutil -q cp "$@" >&2
+}
+
 download_bundle() {
-	gsutil -q cp "$REMOTE_URL" "$BUNDLE_FILE" 2>/dev/null || true
+	blobcp "$REMOTE_URL" "$BUNDLE_FILE" || true
 }
 
 cmd_capabilities() {
@@ -38,7 +42,7 @@ cmd_push() {
 	local new_bundle="${CACHE_DIR}/new.bundle"
 	
 	git bundle create "$new_bundle" --all
-	gsutil -q cp "$new_bundle" "$REMOTE_URL"
+	blobcp "$new_bundle" "$REMOTE_URL"
 
 	# jq extracts the dst ref from src:dst (col 2), formats the ACK, and prints to stdout
 	jq -rR 'split(" ")[1] | split(":") | last | "ok \(.)"' "$BATCH_FILE"
