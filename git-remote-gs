@@ -5,7 +5,8 @@ set -ex
 REMOTE_URL="$2"
 CACHE_DIR=$(mktemp -d -t git-remote-gs.XXXXXX)
 BUNDLE_FILE="${CACHE_DIR}/repo.bundle"
-BATCH_FILE="${CACHE_DIR}/batch"
+FETCH_FILE="${CACHE_DIR}/fetch"
+PUSH_FILE="${CACHE_DIR}/push"
 
 trap 'rm -rf "$CACHE_DIR"' EXIT
 
@@ -38,7 +39,7 @@ cmd_fetch() {
 	download_bundle
 	# jq parses the whole batch file, extracts all target refs (col 3), 
 	# and $() flattens them into arguments for a single bulk fetch operation.
-	refs=$(jq -rR 'split(" ")[2]' "$BATCH_FILE")
+	refs=$(jq -rR 'split(" ")[2]' "$FETCH_FILE")
 	# shellcheck disable=SC2086
 	git fetch --quiet "$BUNDLE_FILE" $refs
 }
@@ -51,21 +52,18 @@ cmd_push() {
 	blobcp "${new_bundle}.gz" "$REMOTE_URL"
 
 	# jq extracts the dst ref from src:dst (col 2), formats the ACK, and prints to stdout
-	jq -rR 'split(" ")[1] | split(":") | last | "ok \(.)"' "$BATCH_FILE"
+	jq -rR 'split(" ")[1] | split(":") | last | "ok \(.)"' "$PUSH_FILE"
 }
 
 cmd_process_batch() {
-	[[ -s "$BATCH_FILE" ]] || return 0
-
-	# jq slurps (-s) the file, grabs the first line, and extracts the first word to route the command
-	local batch_type
-	batch_type=$(jq -sRr 'split("\n")[0] | split(" ")[0]' "$BATCH_FILE")
-
-	# Dynamically route to cmd_fetch or cmd_push
-	"cmd_${batch_type}"
-	echo
-
-	rm -f "$BATCH_FILE"
+	for op in fetch push; do
+		local file="${CACHE_DIR}/${op}"
+		if [[ -f "$file" ]]; then
+			"cmd_${op}"
+			echo
+			rm -f "$file"
+		fi
+	done
 }
 
 # Git communicates with helpers line-by-line over stdin/stdout:
@@ -111,6 +109,7 @@ while read -r line; do
 	case "$line" in
 		capabilities) cmd_capabilities ;;
 		list*)        cmd_list ;;
-		fetch\ *|push\ *) echo "$line" >> "$BATCH_FILE" ;;
+		fetch\ *)     echo "$line" >> "$FETCH_FILE" ;;
+		push\ *)      echo "$line" >> "$PUSH_FILE" ;;
 	esac
 done
