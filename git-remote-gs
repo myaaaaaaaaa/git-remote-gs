@@ -32,7 +32,6 @@ cmd_fetch() {
 	refs=$(jq -rR 'split(" ")[2]' "$BATCH_FILE")
 	# shellcheck disable=SC2086
 	git fetch --quiet "$BUNDLE_FILE" $refs
-	echo ""
 }
 
 cmd_push() {
@@ -43,7 +42,6 @@ cmd_push() {
 
 	# jq extracts the dst ref from src:dst (col 2), formats the ACK, and prints to stdout
 	jq -rR 'split(" ")[1] | split(":") | last | "ok \(.)"' "$BATCH_FILE"
-	echo ""
 }
 
 cmd_process_batch() {
@@ -55,6 +53,7 @@ cmd_process_batch() {
 
 	# Dynamically route to cmd_fetch or cmd_push
 	"cmd_${batch_type}"
+	echo
 
 	rm -f "$BATCH_FILE"
 }
