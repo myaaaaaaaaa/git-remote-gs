@@ -14,6 +14,7 @@ blobcp() {
 }
 
 download_bundle() {
+	[[ -f "$BUNDLE_FILE" ]] && return 0
 	blobcp "$REMOTE_URL" "$BUNDLE_FILE" || true
 }
 
