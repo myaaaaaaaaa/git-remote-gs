@@ -1,5 +1,9 @@
 #!/usr/bin/env bats
 
+git_count() {
+	git rev-list --count HEAD
+}
+
 setup() {
 	bats_load_library bats-support
 	bats_load_library bats-assert
@@ -36,6 +40,7 @@ setup() {
 	git clone gs://mybucket/repo.bundle repo2
 
 	cd repo2
+	assert_equal "$(git_count)" "1"
 	assert_equal "$(cat README.md)" "hello"
 }
 
@@ -58,6 +63,7 @@ setup() {
 	cd "$REPO_DIR"
 	git clone gs://mybucket/repo.bundle repo2
 	cd repo2
+	assert_equal "$(git_count)" "1"
 	git config user.email "test2@test.com"
 	git config user.name "test2"
 	echo "world" > README.md
@@ -68,6 +74,7 @@ setup() {
 	cd "$REPO_DIR"/repo1
 	git fetch origin
 	git rebase origin/main
+	assert_equal "$(git_count)" "2"
 	assert_equal "$(cat README.md)" "world"
 }
 
@@ -76,7 +83,6 @@ setup() {
 	# clone a non-existent bundle yields an empty directory, warning of empty repo
 	run git clone gs://mybucket/empty.bundle repo_empty
 	assert_success
-	assert [ -d "repo_empty" ]
 
 	cd repo_empty
 	git branch -m main
@@ -91,5 +97,6 @@ setup() {
 	cd "$REPO_DIR"
 	git clone gs://mybucket/empty.bundle repo_clone
 	cd repo_clone
+	assert_equal "$(git_count)" "1"
 	assert_equal "$(cat README.md)" "initialized"
 }
