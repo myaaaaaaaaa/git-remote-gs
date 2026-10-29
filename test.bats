@@ -99,3 +99,42 @@ setup() {
 	assert_equal "$(git_count)" "1"
 	assert_equal "$(cat README.md)" "initialized"
 }
+
+@test "clone fails loudly on truncated bundle (partial download)" {
+	cd "$REPO_DIR"
+
+	mkdir repo1
+	cd repo1
+	git init
+	git branch -m main
+	git config user.email "test@test.com"
+	git config user.name "test"
+
+	echo "hello" > README.md
+	git add README.md
+	git commit -m "initial"
+
+	git remote add origin gs://mybucket/truncated.bundle
+	git push origin main
+
+	local bundle="${GS_MOCK_DIR}/mybucket/truncated.bundle"
+	local size
+	size=$(stat -c%s "$bundle")
+	truncate -s $((size / 2)) "$bundle"
+
+	cd "$REPO_DIR"
+	run git clone gs://mybucket/truncated.bundle repo2
+	assert_failure
+	assert_output --partial "fatal: early EOF"
+	[ ! -d repo2 ]
+}
+
+@test "clone fails loudly on corrupted bundle header" {
+	echo "corrupt bundle data" > "${GS_MOCK_DIR}/mybucket/corrupted.bundle"
+
+	cd "$REPO_DIR"
+	run git clone gs://mybucket/corrupted.bundle repo2
+	assert_failure
+	assert_output --partial "does not look like a v2 or v3 bundle file"
+	[ ! -d repo2 ]
+}
