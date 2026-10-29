@@ -85,13 +85,12 @@ setup() {
 	assert_success
 
 	cd repo_empty
-	git branch -m main
 	git config user.email "test@test.com"
 	git config user.name "test"
 	echo "initialized" > README.md
 	git add README.md
 	git commit -m "initial"
-	git push origin main
+	git push
 
 	# Verify by cloning the newly created remote bundle into another repo
 	cd "$REPO_DIR"
