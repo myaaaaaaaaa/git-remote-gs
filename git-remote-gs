@@ -21,7 +21,7 @@ cmd_capabilities() {
 
 cmd_list() {
 	download_bundle
-	[[ -f "$BUNDLE_FILE" ]] && git bundle list-heads "$BUNDLE_FILE"
+	if [[ -f "$BUNDLE_FILE" ]]; then git bundle list-heads "$BUNDLE_FILE"; else echo "HEAD -> main"; fi
 	echo ""
 }
 

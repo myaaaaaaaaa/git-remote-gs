@@ -24,7 +24,6 @@ setup() {
 	mkdir repo1
 	cd repo1
 	git init
-	git branch -m main
 	git config user.email "test@test.com"
 	git config user.name "test"
 
@@ -33,7 +32,7 @@ setup() {
 	git commit -m "initial"
 
 	git remote add origin gs://mybucket/repo.bundle
-	git push origin main
+	git push -u origin HEAD
 
 	# Clone into second repo
 	cd "$REPO_DIR"
@@ -50,7 +49,6 @@ setup() {
 	mkdir repo1
 	cd repo1
 	git init
-	git branch -m main
 	git config user.email "test@test.com"
 	git config user.name "test"
 
@@ -58,7 +56,7 @@ setup() {
 	git add README.md
 	git commit -m "initial"
 	git remote add origin gs://mybucket/repo.bundle
-	git push origin main
+	git push -u origin HEAD
 
 	cd "$REPO_DIR"
 	git clone gs://mybucket/repo.bundle repo2
@@ -69,11 +67,11 @@ setup() {
 	echo "world" > README.md
 	git add README.md
 	git commit -m "update"
-	git push origin main
+	git push -u origin HEAD
 
 	cd "$REPO_DIR"/repo1
 	git fetch origin
-	git rebase origin/main
+	git rebase origin/HEAD
 	assert_equal "$(git_count)" "2"
 	assert_equal "$(cat README.md)" "world"
 }
@@ -85,13 +83,12 @@ setup() {
 	assert_success
 
 	cd repo_empty
-	git branch -m main
 	git config user.email "test@test.com"
 	git config user.name "test"
 	echo "initialized" > README.md
 	git add README.md
 	git commit -m "initial"
-	git push origin main
+	git push -u origin HEAD
 
 	# Verify by cloning the newly created remote bundle into another repo
 	cd "$REPO_DIR"
