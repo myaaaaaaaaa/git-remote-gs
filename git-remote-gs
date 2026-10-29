@@ -63,6 +63,39 @@ cmd_process_batch() {
 	rm -f "$BATCH_FILE"
 }
 
+# Git communicates with helpers line-by-line over stdin/stdout:
+# * 'capabilities': Helper reports capabilities, ending with a blank line.
+# * 'list' / 'list for-push': Helper reports '<sha> <ref>' lines, ending with a blank line.
+# * 'fetch' / 'push': Sent in batches terminated by a blank line; helper executes
+#   the batch, emits acknowledgments ('ok <ref>' for push), and ends with a blank line.
+# * EOF on stdin signals helper termination.
+#
+# Example exchange (Fetch / Clone):
+#   git:    capabilities
+#   helper: fetch
+#           push
+#           (blank)
+#   git:    list
+#   helper: <sha> refs/heads/main
+#           <sha> HEAD
+#           (blank)
+#   git:    fetch <sha> HEAD
+#           fetch <sha> refs/heads/main
+#           (blank)
+#   helper: (blank)
+#
+# Example exchange (Push):
+#   git:    capabilities
+#   helper: fetch
+#           push
+#           (blank)
+#   git:    list for-push
+#   helper: (blank)
+#   git:    push refs/heads/main:refs/heads/main
+#           (blank)
+#   helper: ok refs/heads/main
+#           (blank)
+#
 # --- Main Event Router ---
 while read -r line; do
 	if [[ -z "$line" ]]; then
