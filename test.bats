@@ -71,10 +71,25 @@ setup() {
 	assert_equal "$(cat README.md)" "world"
 }
 
-@test "clone empty repo works gracefully" {
+@test "clone nonexistent repo, commit, and push" {
 	cd "$REPO_DIR"
 	# clone a non-existent bundle yields an empty directory, warning of empty repo
 	run git clone gs://mybucket/empty.bundle repo_empty
 	assert_success
 	assert [ -d "repo_empty" ]
+
+	cd repo_empty
+	git branch -m main
+	git config user.email "test@test.com"
+	git config user.name "test"
+	echo "initialized" > README.md
+	git add README.md
+	git commit -m "initial"
+	git push origin main
+
+	# Verify by cloning the newly created remote bundle into another repo
+	cd "$REPO_DIR"
+	git clone gs://mybucket/empty.bundle repo_clone
+	cd repo_clone
+	assert_equal "$(cat README.md)" "initialized"
 }
