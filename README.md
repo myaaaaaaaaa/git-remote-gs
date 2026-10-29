@@ -15,6 +15,7 @@ A minimalist Git remote helper for Google Cloud Storage (`gs://`).
 * `bash`
 * `git`
 * `gsutil` (authenticated to access target GCS buckets)
+* `gzip`
 * `jq`
 
 ## Usage

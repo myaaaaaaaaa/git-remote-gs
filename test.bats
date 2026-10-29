@@ -125,7 +125,7 @@ setup() {
 	cd "$REPO_DIR"
 	run git clone gs://mybucket/truncated.bundle repo2
 	assert_failure
-	assert_output --partial "fatal: early EOF"
+	assert_output --partial "unexpected end of file"
 	[ ! -d repo2 ]
 }
 
@@ -135,6 +135,6 @@ setup() {
 	cd "$REPO_DIR"
 	run git clone gs://mybucket/corrupted.bundle repo2
 	assert_failure
-	assert_output --partial "does not look like a v2 or v3 bundle file"
+	assert_output --partial "not in gzip format"
 	[ ! -d repo2 ]
 }

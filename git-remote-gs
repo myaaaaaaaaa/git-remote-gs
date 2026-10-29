@@ -15,7 +15,11 @@ blobcp() {
 
 download_bundle() {
 	[[ -f "$BUNDLE_FILE" ]] && return 0
-	blobcp "$REMOTE_URL" "$BUNDLE_FILE" || true
+	local gz_file="${BUNDLE_FILE}.gz"
+	blobcp "$REMOTE_URL" "$gz_file" || true
+	if [[ -f "$gz_file" ]]; then
+		gzip -d "$gz_file"
+	fi
 }
 
 cmd_capabilities() {
@@ -43,7 +47,8 @@ cmd_push() {
 	local new_bundle="${CACHE_DIR}/new.bundle"
 	
 	git bundle create "$new_bundle" --all
-	blobcp "$new_bundle" "$REMOTE_URL"
+	gzip "$new_bundle"
+	blobcp "${new_bundle}.gz" "$REMOTE_URL"
 
 	# jq extracts the dst ref from src:dst (col 2), formats the ACK, and prints to stdout
 	jq -rR 'split(" ")[1] | split(":") | last | "ok \(.)"' "$BATCH_FILE"
