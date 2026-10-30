@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+src="${1/gs:\/\//$GS_MOCK_DIR/}"
+dst="${2/gs:\/\//$GS_MOCK_DIR/}"
+mkdir -p "$(dirname "$dst")"
+cp "$src" "$dst"

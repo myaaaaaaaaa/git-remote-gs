@@ -10,9 +10,11 @@ PUSH_FILE="${CACHE_DIR}/push"
 
 trap 'rm -rf "$CACHE_DIR"' EXIT
 
-blobcp() {
-	gsutil -q cp "$@" >&2
-}
+if ! command -v blobcp >/dev/null 2>&1; then
+	blobcp() {
+		gsutil -q cp "$@" >&2
+	}
+fi
 
 download_bundle() {
 	[[ -f "$BUNDLE_FILE" ]] && return 0

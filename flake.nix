@@ -6,9 +6,9 @@
       forPkgs = pkgs:
         let
           name = "git-remote-gs";
-          mock_gsutil = pkgs.writeShellScriptBin
-            "gsutil"
-            (builtins.readFile ./mock_gsutil);
+          mock_blobcp = pkgs.writeShellScriptBin
+            "blobcp"
+            (builtins.readFile ./mock_blobcp);
           package = pkgs.writeShellApplication {
             name = name;
             text = builtins.readFile ./${name};
@@ -16,7 +16,7 @@
           check = pkgs.runCommand "bats-test" {
             nativeBuildInputs = [
               package
-              mock_gsutil
+              mock_blobcp
               pkgs.git
               pkgs.jq
               (pkgs.bats.withLibraries (p: [
