@@ -12,7 +12,6 @@
           package = pkgs.writeShellApplication {
             name = name;
             runtimeInputs = [
-              pkgs.git
               pkgs.jq
             ];
             text = builtins.readFile ./${name};
