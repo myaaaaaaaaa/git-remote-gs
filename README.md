@@ -50,3 +50,15 @@ cd new-repo
 git commit --allow-empty -m "initial commit"
 git push
 ```
+
+## Utilities
+
+```sh
+EXT="bundle"
+
+projects=$(gcloud projects list --format="value(projectId)")
+for project in $projects; do
+    echo "Project: $project"
+    gcloud storage ls "gs://*/**.${EXT}" --project="$project"
+done
+```
