@@ -11,6 +11,10 @@
             (builtins.readFile ./mock_blobcp);
           package = pkgs.writeShellApplication {
             name = name;
+            runtimeInputs = [
+              pkgs.git
+              pkgs.jq
+            ];
             text = builtins.readFile ./${name};
           };
           check = pkgs.runCommand "bats-test" {
@@ -18,7 +22,6 @@
               package
               mock_blobcp
               pkgs.git
-              pkgs.jq
               (pkgs.bats.withLibraries (p: [
                 p.bats-support
                 p.bats-assert
