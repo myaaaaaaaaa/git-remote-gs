@@ -37,9 +37,7 @@ cmd_list() {
 
 cmd_fetch() {
 	download_bundle
-	# jq parses the whole batch file, extracts all target refs (col 3), 
-	# and $() flattens them into arguments for a single bulk fetch operation.
-	refs=$(jq -rR 'split(" ")[2]' "$FETCH_FILE")
+	refs=$(jq -rR 'split(" ")[1]' "$FETCH_FILE")
 	# shellcheck disable=SC2086
 	git fetch --quiet "$BUNDLE_FILE" $refs
 }
@@ -51,8 +49,7 @@ cmd_push() {
 	gzip "$new_bundle"
 	blobcp "${new_bundle}.gz" "$REMOTE_URL"
 
-	# jq extracts the dst ref from src:dst (col 2), formats the ACK, and prints to stdout
-	jq -rR 'split(" ")[1] | split(":") | last | "ok \(.)"' "$PUSH_FILE"
+	jq -rR 'split(":") | last | "ok \(.)"' "$PUSH_FILE"
 }
 
 cmd_process_batch() {
@@ -100,16 +97,16 @@ cmd_process_batch() {
 #           (blank)
 #
 # --- Main Event Router ---
-while read -r line; do
-	if [[ -z "$line" ]]; then
+while read -r cmd args; do
+	if [[ -z "$cmd" ]]; then
 		cmd_process_batch
 		continue
 	fi
 
-	case "$line" in
+	case "$cmd" in
 		capabilities) cmd_capabilities ;;
-		list*)        cmd_list ;;
-		fetch\ *)     echo "$line" >> "$FETCH_FILE" ;;
-		push\ *)      echo "$line" >> "$PUSH_FILE" ;;
+		list)         cmd_list ;;
+		fetch)        echo "$args" >> "$FETCH_FILE" ;;
+		push)         echo "$args" >> "$PUSH_FILE" ;;
 	esac
 done
