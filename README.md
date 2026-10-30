@@ -56,6 +56,7 @@ git push
 Using a consistent filename extension (such as `.bundle`) makes your repositories easily discoverable across buckets and projects with a single command:
 
 ```sh
+(
 EXT="bundle"
 
 projects=$(gcloud projects list --format="value(projectId)")
@@ -63,4 +64,5 @@ for project in $projects; do
     echo "Project: $project"
     gcloud storage ls "gs://*/**.${EXT}" --project="$project"
 done
+)
 ```
