@@ -10,13 +10,29 @@ A minimalist Git remote helper for Google Cloud Storage (`gs://`).
 * **Git bundle architecture**: Entire repository history and references are serialized into Git bundle files for push and fetch operations.
 * **Empty repository bootstrapping**: Cloning a nonexistent bundle URL initializes an empty local repo ready for initial commits and pushes.
 
-## Requirements
+## Installation
 
-* `bash`
-* `gcloud` CLI (authenticated to access target GCS buckets)
-* `git`
-* `gzip`
-* `jq`
+Install and manage using Nix. Other methods are not supported.
+
+* **Install to profile**:
+  ```sh
+  nix profile add github:myaaaaaaaaa/git-remote-gs
+  ```
+
+* **Upgrade**:
+  ```sh
+  nix profile upgrade git-remote-gs
+  ```
+
+* **Run in a temporary shell**:
+  ```sh
+  nix shell github:myaaaaaaaaa/git-remote-gs
+  ```
+
+* **Run directly** (mostly for testing and debugging):
+  ```sh
+  nix run github:myaaaaaaaaa/git-remote-gs
+  ```
 
 ## Usage
 
