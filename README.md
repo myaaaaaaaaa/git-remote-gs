@@ -21,7 +21,7 @@ Install and manage using Nix. Other methods are not supported.
 
 * **Upgrade**:
   ```sh
-  nix profile upgrade git-remote-gs
+  nix profile upgrade --refresh git-remote-gs
   ```
 
 * **Run in a temporary shell**:
