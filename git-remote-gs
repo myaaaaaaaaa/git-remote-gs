@@ -12,7 +12,7 @@ trap 'rm -rf "$CACHE_DIR"' EXIT
 
 if ! command -v blobcp >/dev/null 2>&1; then
 	blobcp() {
-		gsutil -q cp "$@" >&2
+		gcloud storage cp --quiet "$@" >&2
 	}
 fi
 
