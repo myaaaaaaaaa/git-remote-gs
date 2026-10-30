@@ -51,7 +51,9 @@ git commit --allow-empty -m "initial commit"
 git push
 ```
 
-## Utilities
+## Best Practices
+
+Using a consistent filename extension (such as `.bundle`) makes your repositories easily discoverable across buckets and projects with a single command:
 
 ```sh
 EXT="bundle"
