@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# git-remote-gs: Minimalist GCS Git remote using set -ex and jq
-set -ex
 
 REMOTE_URL="$2"
 CACHE_DIR=$(mktemp -d -t git-remote-gs.XXXXXX)
@@ -24,6 +22,7 @@ cmd_capabilities() {
 
 cmd_fetch() {
 	[[ -f "$BUNDLE_FILE" ]] && return 0
+
 	local gz_file="${BUNDLE_FILE}.gz"
 	blobcp "$REMOTE_URL" "$gz_file" || true
 	if [[ -f "$gz_file" ]]; then
@@ -33,7 +32,7 @@ cmd_fetch() {
 }
 cmd_push() {
 	local new_bundle="${CACHE_DIR}/new.bundle"
-	
+
 	git bundle create "$new_bundle" --all
 	gzip "$new_bundle"
 	blobcp "${new_bundle}.gz" "$REMOTE_URL"
