@@ -138,3 +138,106 @@ setup() {
 	assert_output --partial "not in gzip format"
 	[ ! -d repo2 ]
 }
+
+@test "conflicting non-fast-forward push is rejected and preserves remote commit" {
+	cd "$REPO_DIR"
+
+	mkdir repo1
+	cd repo1
+	git init
+	git branch -m main
+	git config user.email "test@test.com"
+	git config user.name "test"
+
+	echo "base" > file.txt
+	git add file.txt
+	git commit -m "base commit C"
+	git remote add origin gs://mybucket/repo.bundle
+	git push origin main
+
+	cd "$REPO_DIR"
+	git clone gs://mybucket/repo.bundle repo2
+	cd repo2
+	git config user.email "test2@test.com"
+	git config user.name "test2"
+
+	# repo1 creates and pushes commit D1
+	cd "$REPO_DIR"/repo1
+	echo "change D1" > file.txt
+	git add file.txt
+	git commit -m "commit D1"
+	git push origin main
+
+	# repo2 creates conflicting commit D2 without fetching D1
+	cd "$REPO_DIR"/repo2
+	echo "change D2" > file.txt
+	git add file.txt
+	git commit -m "commit D2"
+
+	# Non-fast-forward push must fail and be rejected
+	run git push origin main
+	assert_failure
+	assert_output --partial "non-fast-forward"
+
+	# Remote repository must still preserve D1
+	cd "$REPO_DIR"
+	git clone gs://mybucket/repo.bundle repo3
+	cd repo3
+	assert_equal "$(git_count)" "2"
+	assert_equal "$(cat file.txt)" "change D1"
+	assert_equal "$(git log -1 --pretty=%B)" "commit D1"
+}
+
+@test "force push overwrites conflicting remote commit" {
+	cd "$REPO_DIR"
+
+	mkdir repo1
+	cd repo1
+	git init
+	git branch -m main
+	git config user.email "test@test.com"
+	git config user.name "test"
+
+	echo "base" > file.txt
+	git add file.txt
+	git commit -m "base commit C"
+	git remote add origin gs://mybucket/repo.bundle
+	git push origin main
+
+	cd "$REPO_DIR"
+	git clone gs://mybucket/repo.bundle repo2
+	cd repo2
+	git config user.email "test2@test.com"
+	git config user.name "test2"
+
+	# repo1 creates and pushes commit D1
+	cd "$REPO_DIR"/repo1
+	echo "change D1" > file.txt
+	git add file.txt
+	git commit -m "commit D1"
+	git push origin main
+
+	# repo2 creates conflicting commit D2
+	cd "$REPO_DIR"/repo2
+	echo "change D2" > file.txt
+	git add file.txt
+	git commit -m "commit D2"
+
+	# Normal push fails
+	run git push origin main
+	assert_failure
+
+	# Force push succeeds
+	git push --force origin main
+
+	# Remote repository must now have D2, with D1 overwritten
+	cd "$REPO_DIR"
+	git clone gs://mybucket/repo.bundle repo3
+	cd repo3
+	assert_equal "$(git_count)" "2"
+	assert_equal "$(cat file.txt)" "change D2"
+	assert_equal "$(git log -1 --pretty=%B)" "commit D2"
+	run git log --grep="commit D1"
+	assert_output ""
+}
+

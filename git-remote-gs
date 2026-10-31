@@ -22,6 +22,7 @@ download_bundle() {
 	blobcp "$REMOTE_URL" "$gz_file" || true
 	if [[ -f "$gz_file" ]]; then
 		gzip -d "$gz_file"
+		git fetch --quiet "$BUNDLE_FILE" 2>/dev/null || true
 	fi
 }
 
@@ -39,9 +40,6 @@ cmd_list() {
 
 cmd_fetch() {
 	download_bundle
-	refs=$(jq -rR 'split(" ")[1]' "$FETCH_FILE")
-	# shellcheck disable=SC2086
-	git fetch --quiet "$BUNDLE_FILE" $refs
 }
 
 cmd_push() {
