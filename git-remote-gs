@@ -16,7 +16,13 @@ if ! command -v blobcp >/dev/null 2>&1; then
 	}
 fi
 
-download_bundle() {
+cmd_capabilities() {
+	echo fetch
+	echo push
+	echo
+}
+
+cmd_fetch() {
 	[[ -f "$BUNDLE_FILE" ]] && return 0
 	local gz_file="${BUNDLE_FILE}.gz"
 	blobcp "$REMOTE_URL" "$gz_file" || true
@@ -25,23 +31,6 @@ download_bundle() {
 		git fetch --quiet "$BUNDLE_FILE" 2>/dev/null || true
 	fi
 }
-
-cmd_capabilities() {
-	echo fetch
-	echo push
-	echo
-}
-
-cmd_list() {
-	download_bundle
-	[[ -f "$BUNDLE_FILE" ]] && git bundle list-heads "$BUNDLE_FILE"
-	echo ""
-}
-
-cmd_fetch() {
-	download_bundle
-}
-
 cmd_push() {
 	local new_bundle="${CACHE_DIR}/new.bundle"
 	
@@ -50,6 +39,12 @@ cmd_push() {
 	blobcp "${new_bundle}.gz" "$REMOTE_URL"
 
 	jq -rR 'split(":") | last | "ok \(.)"' "$PUSH_FILE"
+}
+
+cmd_list() {
+	cmd_fetch
+	[[ -f "$BUNDLE_FILE" ]] && git bundle list-heads "$BUNDLE_FILE"
+	echo ""
 }
 
 cmd_process_batch() {
