@@ -91,6 +91,7 @@ setup() {
 	git add README.md
 	git commit -m "initial"
 	git push
+	assert_equal "$(git rev-parse @{upstream})" "$(git rev-parse HEAD)"
 
 	# Verify by cloning the newly created remote bundle into another repo
 	cd "$REPO_DIR"
